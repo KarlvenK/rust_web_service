@@ -1,28 +1,28 @@
 use actix_web::{web, App, HttpServer};
+use dotenv::dotenv;
+use sqlx::postgres::PgPoolOptions;
+use std::env;
 use std::io;
 use std::sync::Mutex;
-use dotenv::dotenv;
-use std::env;
-use sqlx::postgres::PgPoolOptions;
 
-#[path = "../db_access.rs"]
-mod db_access;
-#[path = "../handlers.rs"]
+#[path = "../dbaccess/mod.rs"]
+mod dbaccess;
+#[path = "../errors.rs"]
+mod errors;
+#[path = "../handlers/mod.rs"]
 mod handlers;
+#[path = "../models/mod.rs"]
+mod models;
 #[path = "../routers.rs"]
 mod routers;
 #[path = "../state.rs"]
 mod state;
-#[path = "../models.rs"]
-mod models;
-#[path = "../errors.rs"]
-mod errors;
 
 use routers::*;
 use state::AppState;
 
 #[actix_rt::main]
-async fn main() -> io::Result<()>{
+async fn main() -> io::Result<()> {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE is not setting in .env file");
@@ -33,7 +33,6 @@ async fn main() -> io::Result<()>{
         visit_count: Mutex::new(0),
         // courses: Mutex::new(vec![])
         db: db_pool,
-
     });
     let app = move || {
         App::new()
