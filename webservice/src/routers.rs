@@ -1,4 +1,7 @@
 use crate::dbaccess::course::{delete_course_db, update_course_details_db};
+use crate::handlers::teacher::{
+    delete_teacher, get_all_teachers, get_teacher_details, post_new_teacher,
+};
 use crate::handlers::{course::*, general::*};
 use actix_web::web;
 
@@ -20,5 +23,15 @@ pub fn course_routes(cfg: &mut web::ServiceConfig) {
                 "/{teacher_id}/{course_id}",
                 web::put().to(update_course_details),
             ),
+    );
+}
+
+pub fn teacher_routes(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/teacher")
+            .route("/", web::post().to(post_new_teacher))
+            .route("/", web::get().to(get_all_teachers))
+            .route("/{teacher_id}", web::get().to(get_teacher_details))
+            .route("/{teacher_id}", web::delete().to(delete_teacher)),
     );
 }

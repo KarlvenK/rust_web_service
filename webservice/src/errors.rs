@@ -1,15 +1,16 @@
-use actix_web::{error, Error, http::StatusCode, HttpResponse, Result};
+use actix_web::body::BoxBody;
+use actix_web::{error, http::StatusCode, Error, HttpResponse, Result};
 use serde::Serialize;
 use sqlx::error::Error as SQLxError;
 use std::fmt;
 use std::fmt::{Display, Formatter};
-use actix_web::body::BoxBody;
 
 #[derive(Debug, Serialize)]
 pub enum MyError {
     DBError(String),
     ActixError(String),
     NotFound(String),
+    InvalidInput(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -32,6 +33,10 @@ impl MyError {
                 println!("Not Found error occurred: {:?}", msg);
                 msg.into()
             }
+            MyError::InvalidInput(msg) => {
+                println!("Invalid parameters received: {:?}", msg);
+                msg.into()
+            }
         }
     }
 }
@@ -46,12 +51,13 @@ impl error::ResponseError for MyError {
     fn status_code(&self) -> StatusCode {
         match self {
             MyError::DBError(msg) | MyError::ActixError(msg) => StatusCode::INTERNAL_SERVER_ERROR,
-            MyError::NotFound(msg) => StatusCode::NOT_FOUND,
+            MyError::NotFound(_msg) => StatusCode::NOT_FOUND,
+            MyError::InvalidInput(_msg) => StatusCode::BAD_REQUEST,
         }
     }
     fn error_response(&self) -> HttpResponse<BoxBody> {
         HttpResponse::build(self.status_code()).json(MyErrorResponse {
-            error_message: self.error_response()
+            error_message: self.error_response(),
         })
     }
 }

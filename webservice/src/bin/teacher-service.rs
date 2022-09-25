@@ -18,6 +18,7 @@ mod routers;
 #[path = "../state.rs"]
 mod state;
 
+use crate::errors::MyError;
 use routers::*;
 use state::AppState;
 
@@ -37,8 +38,12 @@ async fn main() -> io::Result<()> {
     let app = move || {
         App::new()
             .app_data(shared_data.clone())
+            .app_data(web::JsonConfig::default().error_handler(|_err, _req| {
+                MyError::InvalidInput("Please provide valid Json input".to_string()).into()
+            }))
             .configure(general_routes)
             .configure(course_routes)
+            .configure(teacher_routes)
     };
     HttpServer::new(app).bind("127.0.0.1:3000")?.run().await
 }
